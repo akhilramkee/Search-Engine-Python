@@ -10,6 +10,7 @@ import numpy as np
 
 teleportation = 0.05
 target_delta = 0.04
+total_links=0
 
 stop_words = [
     'a', 'also', 'an', 'and', 'are', 'as', 'at', 'be', 'by', 'do',
@@ -67,21 +68,30 @@ def crawl(urls, _frontier={}, _bases=None):
     Returns a sorted list of tuples (url, content, links).
     `links` is a list of urls.
     '''
+    global total_links
     if not _bases:
         _bases = [urlparse(u).netloc for u in urls]
     for url in [u.rstrip('/') for u in urls]:
-        if url in _frontier:
+        if url in _frontier and total_links<10:
             continue
         try:
-            response = download(url)
+            if total_links<10:
+                response = download(url)
+                total_links=total_links+1
+            else:
+                return sorted(_frontier.values())
         except HTTPError as e:
             print(e, url)
             continue
-
         page = parse(response, url, _bases)
-        print('crawled %s with %s links' % (url, len(page[2])))
+        print('%sth link ->crawled %s with %s links' % (total_links,url, len(page[2])))
         _frontier[url] = page
-        crawl(page[2], _frontier, _bases)
+
+        if(total_links<10):
+            crawl(page[2], _frontier, _bases)
+            total_links=total_links+1
+        else:
+            return sorted(_frontier.values())
     return sorted(_frontier.values())
 
 
