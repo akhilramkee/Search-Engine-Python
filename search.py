@@ -181,6 +181,11 @@ def best_rank(ranks, pages):
 
 def create_index(pages):
     '''
+    Reverse indexing
+    ===================================================
+        {term:(url1,count),(url2,count),(url3,count)}
+    ===================================================
+
     Returns the index as a dict with terms as keys
     and lists tuples(url, count) as values.
     Count says how many times the term occured in the document.
@@ -198,6 +203,7 @@ def count_terms(content):
     content is a text string.
     Returns a Counter with terms as keys
     and their occurence as values.
+    {terms:'times'}
     '''
     return Counter(get_terms(content))
 
@@ -209,6 +215,7 @@ def get_terms(s):
     '''
     Get a list of terms from a string.
     Terms are lower case and all special characters are removed.
+    Returns the list of terms using the regular expression:'[^a-z0-9]->It can be letter/number'
     '''
     normalized = [normalize.sub('', t.lower()) for t in s.split()]
     return [t for t in normalized if t not in stop_words]
@@ -230,6 +237,10 @@ def weight_index(index, N):
 
 
 def tf_idf(tf, N, df):
+    '''
+    tf->count of Terms
+    df->number of urls in which the term occurs
+    '''
     return wtf(tf) * idf(N, df)
 
 
@@ -238,6 +249,10 @@ def wtf(tf):
 
 
 def idf(N, df):
+    '''
+        N->number of pages
+        N/df->Total number of pages/(number of urls containing the term)====>1
+    '''
     return log10(N / df)
 
 
@@ -265,7 +280,7 @@ def doc_lengths(index):
     for docs in index.values():
         for url, weight in docs:
             doc_vectors[url].append(weight)
-    return {url: np.linalg.norm(doc) for url, doc in doc_vectors.items()}
+    return {url: np.linalg.norm(doc) for url,doc in doc_vectors.items()}
 
 
 # Search & Scoring
